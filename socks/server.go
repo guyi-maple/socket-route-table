@@ -7,13 +7,13 @@ import (
 )
 
 type AuthorizationUser struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 type ServerOptions struct {
-	Authorization bool                `json:"authorization"` //是否需要认证
-	Users         []AuthorizationUser `json:"users"`
+	Authorization bool                `yaml:"authorization"` //是否需要认证
+	Users         []AuthorizationUser `yaml:"users"`
 }
 
 type Server struct {
