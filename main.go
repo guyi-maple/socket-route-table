@@ -2,10 +2,25 @@ package main
 
 import (
 	"fmt"
-	"unsafe"
+	"net"
+	"socket-router-table/cmd"
+	"socket-router-table/route"
+	"socket-router-table/socks"
 )
 
 func main() {
-	var num int8 = 1
-	fmt.Printf("%d", unsafe.Sizeof(num))
+	table := route.New(300, "", make(map[string]route.Route))
+
+	channel := cmd.NewChannel()
+	err := channel.StartChannel(table, ":8888")
+	if err != nil {
+		fmt.Printf("open channel error: %s \n", err.Error())
+		return
+	}
+
+	onConnected := func(client net.Conn, address string, port int) {
+		channel.Connect(table, client, fmt.Sprintf("%s:%d", address, port))
+	}
+	socks5 := socks.New(socks.ServerOptions{Authorization: false, Users: []socks.AuthorizationUser{}}, onConnected)
+	socks5.Listen(":9999")
 }
