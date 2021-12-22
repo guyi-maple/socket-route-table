@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	table := route.New(300, "", make(map[string]route.Route))
+	table := route.New("main", "192.168.3.69:8888", 300, "", make(map[string]route.Route))
 
 	channel := cmd.NewChannel()
 	err := channel.StartChannel(table, ":8888")

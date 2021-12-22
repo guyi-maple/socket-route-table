@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -94,6 +95,14 @@ func handleCmd(channel Channel, table route.Table, cmd CommandType, args string,
 	switch cmd {
 	case CONNECT:
 		channel.Connect(table, conn, args)
+		break
+	case PING:
+		channelRoute := route.ChannelRoute{}
+		err := json.Unmarshal([]byte(args), &channelRoute)
+		if err != nil {
+			fmt.Printf("ping cmd error: %s \n", err.Error())
+		}
+		table.Add(channelRoute.Converter())
 		break
 	default:
 		conn.Close()

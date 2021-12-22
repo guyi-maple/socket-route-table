@@ -1,6 +1,10 @@
 package route
 
 import (
+	"encoding/json"
+	"fmt"
+	"net"
+	"socket-router-table/cmd"
 	"time"
 )
 
@@ -18,27 +22,61 @@ type Route struct {
 }
 
 type Table struct {
+	Name    string
+	Ip      string
 	Ping    int
 	Gateway string
 	Routes  map[string]Route
 }
 
-func New(ping int, gateway string, routes map[string]Route) Table {
+func New(name string, ip string, ping int, gateway string, routes map[string]Route) Table {
 	table := Table{
+		Name:    name,
+		Ip:      ip,
 		Ping:    ping,
 		Gateway: gateway,
 		Routes:  routes,
+	}
+	if table.Gateway != "" {
+		go reportRoute(table)
 	}
 	go checkNode(table)
 	return table
 }
 
+func reportRoute(table Table) {
+	c := time.Tick(time.Duration(table.Ping) * time.Second)
+	go func() {
+		for {
+			<-c
+			ciders := make([]string, len(table.Routes))
+			for cidr := range table.Routes {
+				ciders = append(ciders, cidr)
+			}
+			routes := ChannelRoute{
+				Name:   table.Name,
+				Cidr:   ciders,
+				Target: table.Ip,
+			}
+			conn, err := net.Dial("tcp", table.Gateway)
+			if err != nil {
+				fmt.Printf("report routes error: %s \n", err.Error())
+				return
+			}
+			conn.Write([]byte{byte(cmd.PING)})
+			bytes, _ := json.Marshal(routes)
+			conn.Write(bytes)
+			conn.Close()
+		}
+	}()
+}
+
 func checkNode(table Table) {
 	c := time.Tick(time.Duration(table.Ping) * time.Second)
 	go func() {
-		now := time.Now().Second()
 		for {
 			<-c
+			now := time.Now().Second()
 			removeKeys := make(map[string]bool)
 			for key, route := range table.Routes {
 				if now-route.time >= table.Ping {
@@ -52,7 +90,7 @@ func checkNode(table Table) {
 	}()
 }
 
-func (channel ChannelRoute) converter() []Route {
+func (channel ChannelRoute) Converter() []Route {
 	now := time.Now().Second()
 	routes := make([]Route, len(channel.Cidr))
 	for index, cidr := range channel.Cidr {
