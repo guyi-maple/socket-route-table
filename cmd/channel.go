@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"socket-router-table/cons"
 	"socket-router-table/route"
 	"socket-router-table/util"
 )
@@ -45,7 +46,7 @@ func (channel Channel) Connect(table route.Table, conn net.Conn, target string) 
 			conn.Close()
 			return
 		}
-		go sendConnect(CONNECT, conn, child, target)
+		go sendConnect(cons.CONNECT, conn, child, target)
 	} else {
 		if table.Gateway != "" {
 			// 到上级网关
@@ -55,7 +56,7 @@ func (channel Channel) Connect(table route.Table, conn net.Conn, target string) 
 				conn.Close()
 				return
 			}
-			go sendConnect(CONNECT, conn, gateway, target)
+			go sendConnect(cons.CONNECT, conn, gateway, target)
 		} else {
 			// 直连
 			go func() {
@@ -71,7 +72,7 @@ func (channel Channel) Connect(table route.Table, conn net.Conn, target string) 
 	}
 }
 
-func readCmd(client net.Conn) (CommandType, string) {
+func readCmd(client net.Conn) (cons.CommandType, string) {
 	buf := make([]byte, 4)
 	_, _ = client.Read(buf[:1])
 	cmd := int8(buf[0])
@@ -82,21 +83,21 @@ func readCmd(client net.Conn) (CommandType, string) {
 	_, _ = io.ReadFull(client, buf[:length])
 	args := string(buf)
 
-	return CommandType(cmd), args
+	return cons.CommandType(cmd), args
 }
 
-func sendConnect(cmd CommandType, conn, target net.Conn, address string) {
+func sendConnect(cmd cons.CommandType, conn, target net.Conn, address string) {
 	target.Write([]byte{byte(cmd)})
 	target.Write([]byte(address))
 	util.Forward(conn, target)
 }
 
-func handleCmd(channel Channel, table route.Table, cmd CommandType, args string, conn net.Conn) {
+func handleCmd(channel Channel, table route.Table, cmd cons.CommandType, args string, conn net.Conn) {
 	switch cmd {
-	case CONNECT:
+	case cons.CONNECT:
 		channel.Connect(table, conn, args)
 		break
-	case PING:
+	case cons.PING:
 		channelRoute := route.ChannelRoute{}
 		err := json.Unmarshal([]byte(args), &channelRoute)
 		if err != nil {

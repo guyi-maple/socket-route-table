@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"socket-router-table/cmd"
+	"socket-router-table/cons"
 	"time"
 )
 
@@ -63,7 +63,7 @@ func reportRoute(table Table) {
 				fmt.Printf("report routes error: %s \n", err.Error())
 				return
 			}
-			conn.Write([]byte{byte(cmd.PING)})
+			conn.Write([]byte{byte(cons.PING)})
 			bytes, _ := json.Marshal(routes)
 			conn.Write(bytes)
 			conn.Close()
