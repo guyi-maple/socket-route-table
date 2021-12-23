@@ -29,13 +29,13 @@ type Table struct {
 	Routes  map[string]Route
 }
 
-func New(name string, ip string, ping int, gateway string, routes map[string]Route) Table {
+func New(name string, ip string, ping int, gateway string) Table {
 	table := Table{
 		Name:    name,
 		Ip:      ip,
 		Ping:    ping,
 		Gateway: gateway,
-		Routes:  routes,
+		Routes:  make(map[string]Route),
 	}
 	if table.Gateway != "" {
 		go reportRoute(table)

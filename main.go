@@ -9,10 +9,12 @@ import (
 )
 
 func main() {
-	table := route.New("main", "192.168.3.69:8888", 300, "", make(map[string]route.Route))
+	conf := GetConf("./conf.yaml")
+
+	table := route.New(conf.Name, fmt.Sprintf("%s:%d", conf.LocalIp, conf.ChannelPort), conf.Ping, conf.Gateway)
 
 	channel := cmd.NewChannel()
-	err := channel.StartChannel(table, ":8888")
+	err := channel.StartChannel(table, fmt.Sprintf(":%d", conf.ChannelPort))
 	if err != nil {
 		fmt.Printf("open channel error: %s \n", err.Error())
 		return
@@ -22,5 +24,9 @@ func main() {
 		channel.Connect(table, client, fmt.Sprintf("%s:%d", address, port))
 	}
 	socks5 := socks.New(socks.ServerOptions{Authorization: false, Users: []socks.AuthorizationUser{}}, onConnected)
-	socks5.Listen(":9999")
+	err = socks5.Listen(fmt.Sprintf(":%d", conf.Socks5Port))
+	if err != nil {
+		fmt.Printf("open socks5 server error: %s \n", err.Error())
+		return
+	}
 }
