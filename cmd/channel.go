@@ -59,15 +59,15 @@ func (channel Channel) Connect(table route.Table, conn net.Conn, target string) 
 			go sendConnect(cons.CONNECT, conn, gateway, target)
 		} else {
 			// 直连
-			go func() {
-				dest, err := net.Dial("tcp", target)
-				if err != nil {
-					fmt.Printf("connect error: %s \n", err.Error())
-					conn.Close()
-					return
-				}
-				util.Forward(conn, dest)
-			}()
+			fmt.Printf("connect %s \n", target)
+			dest, err := net.Dial("tcp", target)
+			if err != nil {
+				fmt.Printf("connect error: %s \n", err.Error())
+				conn.Close()
+				return
+			}
+			go util.Forward(conn, dest)
+			go util.Forward(dest, conn)
 		}
 	}
 }
