@@ -15,3 +15,12 @@ func Forward(src, dest net.Conn) {
 	defer dest.Close()
 	io.Copy(src, dest)
 }
+
+func Connect(address string) net.Conn {
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		fmt.Printf("tcp connect %s error: %s \n", address, err.Error())
+		return nil
+	}
+	return conn
+}
