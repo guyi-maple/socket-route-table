@@ -1,11 +1,12 @@
-package route
+package util
 
 import (
 	"strconv"
 	"strings"
 )
 
-func isBelong(ip string, cidr string) bool {
+// CidrContains 判断IP是否在CIDR包含的IP段中
+func CidrContains(cidr, ip string) bool {
 	ipAddr := strings.Split(ip, `.`)
 	if len(ipAddr) < 4 {
 		return false

@@ -6,6 +6,7 @@ import (
 	"net"
 )
 
+// Forward IO转发
 func Forward(src, dest net.Conn) {
 	defer func() {
 		fmt.Printf("io forward error: %s \n", recover())
