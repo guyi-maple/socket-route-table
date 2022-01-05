@@ -52,6 +52,8 @@ func main() {
 		return
 	}
 
+	start(conf)
+
 }
 
 func start(conf Configuration) {
