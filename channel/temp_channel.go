@@ -6,12 +6,14 @@ import (
 )
 
 type tempChannel struct {
+	name    string
 	gateway string
 }
 
 // NewTempChannel 创建临时通道
 // NewTempChannel gateway 网关地址
-func NewTempChannel(gateway string) Channel {
+// NewTempChannel name 节点名称
+func NewTempChannel(gateway string, name string) Channel {
 	return tempChannel{
 		gateway: gateway,
 	}
@@ -21,12 +23,16 @@ func (channel tempChannel) Ping() {
 	conn := util.Connect(channel.gateway)
 	defer conn.Close()
 	if conn != nil {
-		SendPing(conn)
+		SendPing(conn, channel.name)
 	}
 }
 
 func (channel tempChannel) UpdateRoute(cidr []string) {
-
+	conn := util.Connect(channel.gateway)
+	defer conn.Close()
+	if conn != nil {
+		UpdateRoute(conn, cidr, channel.name)
+	}
 }
 
 func (channel tempChannel) Forward(address string, routeAddress string, current net.Conn) {
