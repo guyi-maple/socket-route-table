@@ -12,10 +12,10 @@ type DirectChannel struct {
 	local   string
 }
 
-// NewTempChannel 创建临时通道
-// NewTempChannel gateway 网关地址
-// NewTempChannel name 节点名称
-func NewTempChannel(gateway string, name string, localIp string, port int) Channel {
+// NewDirectChannel 创建临时通道
+// NewDirectChannel gateway 网关地址
+// NewDirectChannel name 节点名称
+func NewDirectChannel(gateway string, name string, localIp string, port int) Channel {
 	return DirectChannel{
 		gateway: gateway,
 		name:    name,
