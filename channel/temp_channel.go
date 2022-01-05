@@ -1,25 +1,29 @@
 package channel
 
 import (
+	"fmt"
 	"net"
 	"socket-router-table/util"
 )
 
-type tempChannel struct {
+type DirectChannel struct {
 	name    string
 	gateway string
+	local   string
 }
 
 // NewTempChannel 创建临时通道
 // NewTempChannel gateway 网关地址
 // NewTempChannel name 节点名称
-func NewTempChannel(gateway string, name string) Channel {
-	return tempChannel{
+func NewTempChannel(gateway string, name string, localIp string, port int) Channel {
+	return DirectChannel{
 		gateway: gateway,
+		name:    name,
+		local:   fmt.Sprintf("%s:%d", localIp, port),
 	}
 }
 
-func (channel tempChannel) Ping() {
+func (channel DirectChannel) Ping() {
 	conn := util.Connect(channel.gateway)
 	defer conn.Close()
 	if conn != nil {
@@ -27,23 +31,39 @@ func (channel tempChannel) Ping() {
 	}
 }
 
-func (channel tempChannel) UpdateRoute(cidr []string) {
+func (channel DirectChannel) UpdateRoute(cidr []string) {
 	conn := util.Connect(channel.gateway)
 	defer conn.Close()
 	if conn != nil {
-		UpdateRoute(conn, cidr, channel.name)
+		UpdateRoute(conn, cidr, channel.name, channel.local)
 	}
 }
 
-func (channel tempChannel) Forward(address string, routeAddress string, current net.Conn) {
-
+func (channel DirectChannel) Forward(address string, routeAddress string, current net.Conn) {
+	conn := util.Connect(routeAddress)
+	defer conn.Close()
+	if conn != nil {
+		args := fmt.Sprintf("none|%s", address)
+		Write(conn, []byte{byte(ForwardCmd), byte(len(args))})
+		Write(conn, []byte(args))
+		go util.Forward(current, conn)
+		go util.Forward(conn, current)
+	}
 }
 
-func (channel tempChannel) ForwardGateway(address string, current net.Conn) {
-
+func (channel DirectChannel) ForwardGateway(address string, current net.Conn) {
+	conn := util.Connect(channel.gateway)
+	defer conn.Close()
+	if conn != nil {
+		args := fmt.Sprintf("none|%s", address)
+		Write(conn, []byte{byte(ForwardCmd), byte(len(args))})
+		Write(conn, []byte(args))
+		go util.Forward(current, conn)
+		go util.Forward(conn, current)
+	}
 }
 
-func (channel tempChannel) Direct(address string, current net.Conn) {
+func (channel DirectChannel) Direct(address string, current net.Conn) {
 	dest := util.Connect(address)
 	if dest != nil {
 		go util.Forward(current, dest)

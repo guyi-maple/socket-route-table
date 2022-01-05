@@ -9,13 +9,15 @@ import (
 type CMD int8
 
 type RouteInfo struct {
-	cidr []string
-	name string
+	cidr  []string
+	name  string
+	local string
 }
 
 const (
-	PING         CMD = 1
-	UPDATE_ROUTE     = 2
+	PingCmd        CMD = 1
+	UpdateRouteCmd CMD = 2
+	ForwardCmd     CMD = 3
 )
 
 func Write(conn net.Conn, bytes []byte) bool {
@@ -28,15 +30,16 @@ func Write(conn net.Conn, bytes []byte) bool {
 }
 
 func SendPing(conn net.Conn, name string) {
-	if Write(conn, []byte{byte(PING), byte(len(name))}) {
+	if Write(conn, []byte{byte(PingCmd), byte(len(name))}) {
 		Write(conn, []byte(name))
 	}
 }
 
-func UpdateRoute(conn net.Conn, cidr []string, name string) {
+func UpdateRoute(conn net.Conn, cidr []string, name string, local string) {
 	info := RouteInfo{
-		name: name,
-		cidr: cidr,
+		name:  name,
+		cidr:  cidr,
+		local: local,
 	}
 	args, err := json.Marshal(info)
 	if err != nil {
@@ -44,7 +47,7 @@ func UpdateRoute(conn net.Conn, cidr []string, name string) {
 		return
 	}
 
-	if Write(conn, []byte{byte(UPDATE_ROUTE), byte(len(args))}) {
+	if Write(conn, []byte{byte(UpdateRouteCmd), byte(len(args))}) {
 		Write(conn, args)
 	}
 }
