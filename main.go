@@ -12,12 +12,13 @@ import (
 )
 
 type Socks5Conf struct {
-	port  int                       `yaml:"port"`
-	users []socks.AuthorizationUser `yaml:"users"`
+	Port  int                       `yaml:"port"`
+	Bind  string                    `yaml:"bind"`
+	Users []socks.AuthorizationUser `yaml:"users"`
 }
 
 type ChannelConf struct {
-	port int `yaml:"port"`
+	Port int `yaml:"port"`
 }
 
 type Configuration struct {
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	var conf Configuration
-	err = yaml.Unmarshal(bytes, conf)
+	err = yaml.Unmarshal(bytes, &conf)
 	if err != nil {
 		fmt.Printf("parse config file error: %s", err.Error())
 		return
@@ -62,19 +63,19 @@ func start(conf Configuration) {
 	if conf.Frp {
 		chain = nil
 	} else {
-		chain = channel.NewDirectChannel(conf.Gateway, conf.Name, conf.Local, conf.Channel.port)
+		chain = channel.NewDirectChannel(conf.Gateway, conf.Name, conf.Local, conf.Channel.Port)
 	}
 
 	socks5 := socks.NewSocksServer(
 		socks.ServerOptions{
-			Authorization: conf.Socks5.users != nil && len(conf.Socks5.users) > 0,
-			Users:         conf.Socks5.users,
+			Authorization: conf.Socks5.Users != nil && len(conf.Socks5.Users) > 0,
+			Users:         conf.Socks5.Users,
 		},
 		func(conn net.Conn, ip string, port int) {
 			onSocksAccept(conf, table, chain, ip, port, conn)
 		},
 	)
-	err := socks5.Listen(fmt.Sprintf("0:%d", conf.Socks5.port))
+	err := socks5.Listen(fmt.Sprintf("%s:%d", conf.Socks5.Bind, conf.Socks5.Port))
 	if err != nil {
 		fmt.Printf("start socks5 server error: %s", err.Error())
 		return
