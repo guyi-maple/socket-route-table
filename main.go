@@ -18,7 +18,8 @@ type Socks5Conf struct {
 }
 
 type ChannelConf struct {
-	Port int `yaml:"port"`
+	Bind string `yaml:"bind"`
+	Port int    `yaml:"port"`
 }
 
 type Configuration struct {
@@ -75,11 +76,32 @@ func start(conf Configuration) {
 			onSocksAccept(conf, table, chain, ip, port, conn)
 		},
 	)
-	err := socks5.Listen(fmt.Sprintf("%s:%d", conf.Socks5.Bind, conf.Socks5.Port))
-	if err != nil {
-		fmt.Printf("start socks5 server error: %s", err.Error())
-		return
+
+	go func() {
+		err := socks5.Listen(fmt.Sprintf("%s:%d", conf.Socks5.Bind, conf.Socks5.Port))
+		if err != nil {
+			fmt.Printf("start socks5 server error: %s", err.Error())
+			return
+		}
+	}()
+
+	if conf.Channel.Port != 0 {
+		go func() {
+			address := fmt.Sprintf("%s:%d", conf.Channel.Bind, conf.Channel.Port)
+			err := channel.ListenGatewayServer(address, onGatewayAccept)
+			if err != nil {
+				fmt.Printf("listen gateway server %s error: %s \n", address, err.Error())
+				return
+			}
+		}()
 	}
+
+	// 阻塞
+	select {}
+}
+
+func onGatewayAccept(conn net.Conn) {
+
 }
 
 func onSocksAccept(conf Configuration, table route.Table, chain channel.Channel, ip string, port int, conn net.Conn) {
