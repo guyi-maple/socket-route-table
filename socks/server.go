@@ -21,7 +21,7 @@ type Server struct {
 	OnConnected func(net.Conn, string, int)
 }
 
-func New(options ServerOptions, onConnected func(net.Conn, string, int)) Server {
+func NewSocksServer(options ServerOptions, onConnected func(net.Conn, string, int)) Server {
 	return Server{Options: options, OnConnected: onConnected}
 }
 
