@@ -1,5 +1,0 @@
-name: main
-localIp: 127.0.0.1
-channelPort: 8888
-socks5Port: 9999
-ping: 300

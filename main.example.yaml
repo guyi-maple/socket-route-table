@@ -1,0 +1,10 @@
+name: main
+local: 0.0.0.0
+subnet:
+  - 192.168.1.0/25
+socks5:
+  port: 8888
+  bind: 0.0.0.0
+channel:
+  port: 9999
+  bind: 0.0.0.0
