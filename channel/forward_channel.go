@@ -40,6 +40,22 @@ func (channel ForwardChannel) UpdateRoute(cidr []string) {
 }
 
 func (channel ForwardChannel) Forward(address string, routeAddress string, current net.Conn) {
+	listen, err := net.Listen("tcp", fmt.Sprintf("%s:0", channel.local))
+	if err != nil {
+		fmt.Printf("listen frp forward error: %s\n", err.Error())
+		return
+	}
+	// 连接到下级路由， 而不是网关连接
+	args := fmt.Sprintf("%s|%s", listen.Addr().String(), address)
+	Write(channel.conn, []byte{byte(FrpForwardCmd), byte(len(args))})
+	Write(channel.conn, []byte(args))
+	go func() {
+		conn, _ := listen.Accept()
+		go util.ForwardAndCallback(current, conn, func() {
+			_ = listen.Close()
+		})
+		go util.Forward(conn, current)
+	}()
 }
 
 func (channel ForwardChannel) ForwardGateway(address string, current net.Conn) {

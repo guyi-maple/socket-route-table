@@ -16,6 +16,17 @@ func Forward(src, dest net.Conn) {
 	io.Copy(src, dest)
 }
 
+// ForwardAndCallback IO转发
+func ForwardAndCallback(src, dest net.Conn, callback func()) {
+	defer func() {
+		fmt.Printf("io forward error: %s \n", recover())
+	}()
+	defer src.Close()
+	defer dest.Close()
+	defer callback()
+	io.Copy(src, dest)
+}
+
 func Connect(address string) net.Conn {
 	conn, err := net.Dial("tcp", address)
 	if err != nil {

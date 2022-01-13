@@ -18,6 +18,7 @@ const (
 	PingCmd        CMD = 1
 	UpdateRouteCmd CMD = 2
 	ForwardCmd     CMD = 3
+	FrpForwardCmd  CMD = 4
 )
 
 func Write(conn net.Conn, bytes []byte) bool {
