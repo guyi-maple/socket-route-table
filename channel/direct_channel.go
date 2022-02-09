@@ -3,6 +3,7 @@ package channel
 import (
 	"fmt"
 	"net"
+	"socket-router-table/route"
 	"socket-router-table/util"
 )
 
@@ -39,8 +40,8 @@ func (channel DirectChannel) UpdateRoute(cidr []string) {
 	}
 }
 
-func (channel DirectChannel) Forward(address string, routeAddress string, current net.Conn) {
-	conn := util.Connect(routeAddress)
+func (channel DirectChannel) Forward(address string, route *route.Route, current net.Conn) {
+	conn := util.Connect(route.Address)
 	defer conn.Close()
 	if conn != nil {
 		args := fmt.Sprintf("none|%s", address)

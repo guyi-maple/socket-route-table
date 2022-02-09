@@ -3,14 +3,16 @@ package channel
 import (
 	"fmt"
 	"net"
+	"socket-router-table/route"
 	"socket-router-table/util"
 )
 
 type ForwardChannel struct {
-	name    string
-	gateway string
-	local   string
-	conn    net.Conn
+	name      string
+	gateway   string
+	local     string
+	conn      net.Conn
+	childConn map[string]route.Route
 }
 
 // NewForwardChannel 创建转发通道
@@ -28,6 +30,21 @@ func NewForwardChannel(gateway string, name string, localIp string, port int) (C
 		local:   fmt.Sprintf("%s:%d", localIp, port),
 		conn:    conn,
 	}
+	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		conn.Close()
+		return nil, err
+	}
+	go func() {
+		for {
+			child, _ := listen.Accept()
+			if child != nil {
+				// 保持连接
+				// 读取节点信息
+				// 存储连接到childConn
+			}
+		}
+	}()
 	return channel, nil
 }
 
@@ -39,7 +56,7 @@ func (channel ForwardChannel) UpdateRoute(cidr []string) {
 	UpdateRoute(channel.conn, cidr, channel.name, channel.local)
 }
 
-func (channel ForwardChannel) Forward(address string, routeAddress string, current net.Conn) {
+func (channel ForwardChannel) Forward(address string, route *route.Route, current net.Conn) {
 	listen, err := net.Listen("tcp", fmt.Sprintf("%s:0", channel.local))
 	if err != nil {
 		fmt.Printf("listen frp forward error: %s\n", err.Error())

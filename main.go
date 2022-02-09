@@ -114,6 +114,6 @@ func onSocksAccept(conf Configuration, table route.Table, chain channel.Channel,
 			chain.ForwardGateway(address, conn)
 		}
 	} else {
-		chain.Forward(address, r.Address, conn)
+		chain.Forward(address, r, conn)
 	}
 }
